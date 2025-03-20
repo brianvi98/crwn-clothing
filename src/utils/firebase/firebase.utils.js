@@ -4,6 +4,7 @@ import {
   signInWithRedirect,
   signInWithPopup,
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
@@ -26,15 +27,32 @@ provider.setCustomParameters({
   prompt: "select_account",
 });
 
-// set up auth with Google pop-up signin
+// ~~~ AUTH ~~~
+// set up auth with Google pop-up signin. if you want a different service
+// like Github, make more providers and handlers
 export const auth = getAuth();
 export const signInWithGooglePopup = () => signInWithPopup(auth, provider);
+export const signInWithGoogleRedirect = () =>
+  signInWithRedirect(auth, provider);
 
-// DB STUFF BELOW: initialize Firestore as db
+// this sign-in is native, so we don't need anything more than this
+export const createAuthUserWithEmailAndPassword = async (email, password) => {
+  if (!email || !password) return;
+
+  return await createUserWithEmailAndPassword(auth, email, password);
+};
+
+// ~~~ FIRESTORE DB ~~~
+// initialize Firestore as db
 export const db = getFirestore();
 
-//
-export const createUserDocumentFromAuth = async (userAuth) => {
+// takes a user object from an auth, checks if it exists and creates if not
+export const createUserDocumentFromAuth = async (
+  userAuth,
+  additionalInformation = {}
+) => {
+  if (!userAuth) return;
+
   const userDocRef = doc(db, "users", userAuth.uid);
   console.log(userDocRef);
 
@@ -49,6 +67,7 @@ export const createUserDocumentFromAuth = async (userAuth) => {
         displayName,
         email,
         createdAt,
+        ...additionalInformation,
       });
     } catch (error) {
       console.log("error creating user", error);
