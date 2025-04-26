@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import FormInput from "../form-input/form-input.component";
 import Button from "../button/button.component";
 import "./sign-in-form.styles.scss";
@@ -14,16 +14,15 @@ const defaultFormFields = {
   password: "",
 };
 
-const signInWithGoogle = async () => {
-  const { user } = await signInWithGooglePopup();
-  const userDocRef = await createUserDocumentFromAuth(user);
-};
-
 const SignInForm = () => {
-  const [formFields, setformFields] = useState({});
+  const [formFields, setformFields] = useState(defaultFormFields);
   const { email, password } = formFields;
 
   const resetFormFields = () => setformFields(defaultFormFields);
+
+  const signInWithGoogle = async () => {
+    await signInWithGooglePopup();
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,11 +36,7 @@ const SignInForm = () => {
     e.preventDefault();
 
     try {
-      const { user } = await signInAuthUserWithEmailAndPassword(
-        email,
-        password
-      );
-      await createUserDocumentFromAuth(user, { displayName });
+      await signInAuthUserWithEmailAndPassword(email, password);
       resetFormFields();
     } catch (error) {
       switch (error.code) {
@@ -56,10 +51,6 @@ const SignInForm = () => {
       }
     }
   };
-
-  useEffect(() => {
-    console.log(formFields);
-  }, [formFields]);
 
   return (
     <div className="sign-in-container">

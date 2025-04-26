@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import FormInput from "../form-input/form-input.component";
 import Button from "../button/button.component";
 import "./sign-up-form.styles.scss";
@@ -16,14 +16,14 @@ const defaultFormFields = {
 };
 
 const SignUpForm = () => {
-  const [formFields, setformFields] = useState({});
+  const [formFields, setFormFields] = useState(defaultFormFields);
   const { displayName, email, password, confirmPassword } = formFields;
 
-  const resetFormFields = () => setformFields(defaultFormFields);
+  const resetFormFields = () => setFormFields(defaultFormFields);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setformFields({
+    setFormFields({
       ...formFields,
       [name]: value,
     });
@@ -52,10 +52,6 @@ const SignUpForm = () => {
       }
     }
   };
-
-  useEffect(() => {
-    console.log(formFields);
-  }, [formFields]);
 
   return (
     <div className="sign-up-container">
