@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import { CartContext } from "../../contexts/cart.context";
 import CheckoutItem from "../../components/checkout-item/checkout-item.component";
 import {
@@ -9,12 +9,11 @@ import {
 } from "./checkout.styles";
 
 const Checkout = () => {
-  const {
-    cartItems,
-    addItemToCart,
-    removeItemFromCart,
-    removeItemFromCheckout,
-  } = useContext(CartContext);
+  const { cartItems } = useContext(CartContext);
+
+  const cartTotal = useMemo(() => {
+    return cartItems.reduce((acc, curr) => acc + curr.price * curr.quantity, 0);
+  }, [cartItems]);
 
   return (
     <CheckoutContainer>
@@ -38,10 +37,7 @@ const Checkout = () => {
       {cartItems.map((item) => (
         <CheckoutItem key={item.id} cartItem={item} />
       ))}
-      <Total>
-        Total: $
-        {cartItems.reduce((acc, curr) => acc + curr.price * curr.quantity, 0)}
-      </Total>
+      <Total>Total: ${cartTotal}</Total>
     </CheckoutContainer>
   );
 };

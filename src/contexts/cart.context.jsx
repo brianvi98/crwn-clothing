@@ -1,4 +1,6 @@
-import { useState, createContext } from "react";
+import { createContext, useReducer } from "react";
+
+import { createAction } from "../utils/reducer/reducer.utils";
 
 // this is meant to be fed to a state updater, so always return new array
 const addCartItem = (cartItems, product) => {
@@ -48,20 +50,67 @@ export const CartContext = createContext({
   removeItemFromCart: () => {},
 });
 
+const INITIAL_STATE = {
+  isCartOpen: null,
+  cartItems: [],
+};
+
+const CART_ACTION_TYPES = {
+  SET_CART_OPEN: "SET_CART_OPEN",
+  ADD_ITEM_TO_CART: "ADD_ITEM_TO_CART",
+  REMOVE_ITEM_FROM_CART: "REMOVE_ITEM_FROM_CART",
+  CLEAR_CART_ITEM: "CLEAR_CART_ITEM",
+};
+
+const cartReducer = (state, action) => {
+  const { type, payload } = action;
+
+  switch (type) {
+    case CART_ACTION_TYPES.SET_CART_OPEN:
+      return {
+        ...state,
+        isCartOpen: payload,
+      };
+    case CART_ACTION_TYPES.ADD_ITEM_TO_CART:
+      return {
+        ...state,
+        cartItems: addCartItem(state.cartItems, payload),
+      };
+    case CART_ACTION_TYPES.REMOVE_ITEM_FROM_CART:
+      return {
+        ...state,
+        cartItems: removeCartItem(state.cartItems, payload),
+      };
+    case CART_ACTION_TYPES.CLEAR_CART_ITEM:
+      return {
+        ...state,
+        cartItems: clearCartItem(state.cartItems, payload),
+      };
+    default:
+      throw new Error(`Unhandled type of ${type}`);
+  }
+};
+
 export const CartProvider = ({ children }) => {
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState([]);
+  const [{ cartItems, isCartOpen }, dispatch] = useReducer(
+    cartReducer,
+    INITIAL_STATE
+  );
+
+  const setIsCartOpen = (bool) => {
+    dispatch(createAction(CART_ACTION_TYPES.SET_CART_OPEN, bool));
+  };
 
   const addItemToCart = (product) => {
-    setCartItems(addCartItem(cartItems, product));
+    dispatch(createAction(CART_ACTION_TYPES.ADD_ITEM_TO_CART, product));
   };
 
   const removeItemFromCart = (product) => {
-    setCartItems(removeCartItem(cartItems, product));
+    dispatch(createAction(CART_ACTION_TYPES.REMOVE_ITEM_FROM_CART, product));
   };
 
   const clearItemFromCart = (product) => {
-    setCartItems(clearCartItem(cartItems, product));
+    dispatch(createAction(CART_ACTION_TYPES.CLEAR_CART_ITEM, product));
   };
 
   const value = {
