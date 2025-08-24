@@ -1,5 +1,9 @@
-import React, { useContext, useMemo } from "react";
-import { CartContext } from "../../contexts/cart.context";
+import React from "react";
+import { useSelector } from "react-redux";
+import {
+  selectCartItems,
+  selectCartTotal,
+} from "../../stores/cart/cart.selector";
 import CheckoutItem from "../../components/checkout-item/checkout-item.component";
 import {
   CheckoutContainer,
@@ -9,11 +13,8 @@ import {
 } from "./checkout.styles";
 
 const Checkout = () => {
-  const { cartItems } = useContext(CartContext);
-
-  const cartTotal = useMemo(() => {
-    return cartItems.reduce((acc, curr) => acc + curr.price * curr.quantity, 0);
-  }, [cartItems]);
+  const cartItems = useSelector(selectCartItems);
+  const cartTotal = useSelector(selectCartTotal);
 
   return (
     <CheckoutContainer>
