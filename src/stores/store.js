@@ -1,4 +1,6 @@
 import { compose, applyMiddleware, createStore } from "redux";
+import { persistStore, persistReducer } from "redux-persist";
+import storage from "redux-persist/lib/storage";
 // import logger from "redux-logger";
 import { rootReducer } from "./root-reducer";
 
@@ -29,6 +31,16 @@ const loggerMiddleware = (store) => (next) => (action) => {
   console.log(`next state: `, store.getState());
 };
 
+const persistConfig = {
+  key: "root",
+  storage,
+  // strings of the reducers you don't want to persist
+  blacklist: ["user"],
+};
+
+// applies the persist configs to the root reducer
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
 const middleWares = [loggerMiddleware];
 
 // 5. applyMiddleware() returns a store enhancer that wraps dispatch.
@@ -36,4 +48,10 @@ const middleWares = [loggerMiddleware];
 const composedEnhancers = compose(applyMiddleware(...middleWares));
 
 // 6. Create the Redux store with the root reducer and composed enhancers.
-export const store = createStore(rootReducer, undefined, composedEnhancers);
+export const store = createStore(
+  persistedReducer,
+  undefined,
+  composedEnhancers
+);
+
+export const persistor = persistStore(store);
