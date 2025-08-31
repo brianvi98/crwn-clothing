@@ -1,7 +1,10 @@
 import { compose, applyMiddleware, createStore } from "redux";
 import { persistStore, persistReducer } from "redux-persist";
+import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2";
 import storage from "redux-persist/lib/storage";
-// import logger from "redux-logger";
+import logger from "redux-logger";
+import rootSaga from "./root-saga";
+import createSagaMiddleware from "redux-saga";
 import { rootReducer } from "./root-reducer";
 
 // 1. In vanilla Redux, you define a set of reducer functions,
@@ -18,19 +21,6 @@ import { rootReducer } from "./root-reducer";
 // 4. Middleware (e.g. redux-logger) sits between dispatch and the reducers.
 // Actions flow: dispatch -> middleware -> reducer
 
-// middleware usually follows this curried structure
-const loggerMiddleware = (store) => (next) => (action) => {
-  if (!action.type) return next(action);
-
-  console.log(`type: ${action.type}`);
-  console.log(`payload: `, action.payload);
-  console.log(`currentState: `, store.getState());
-
-  next(action);
-
-  console.log(`next state: `, store.getState());
-};
-
 const persistConfig = {
   key: "root",
   storage,
@@ -41,11 +31,22 @@ const persistConfig = {
 // applies the persist configs to the root reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-const middleWares = [loggerMiddleware];
+const sagaMiddleware = createSagaMiddleware();
+
+const middleWares = [
+  process.env.NODE_ENV !== "production" && logger,
+  sagaMiddleware,
+].filter(Boolean);
 
 // 5. applyMiddleware() returns a store enhancer that wraps dispatch.
 // compose() merges this enhancer with others if needed (e.g. devtools).
-const composedEnhancers = compose(applyMiddleware(...middleWares));
+const composeEnhancer =
+  (process.env.NODE_ENV !== "production" &&
+    window &&
+    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) ||
+  compose;
+
+const composedEnhancers = composeEnhancer(applyMiddleware(...middleWares));
 
 // 6. Create the Redux store with the root reducer and composed enhancers.
 export const store = createStore(
@@ -53,5 +54,7 @@ export const store = createStore(
   undefined,
   composedEnhancers
 );
+
+sagaMiddleware.run(rootSaga);
 
 export const persistor = persistStore(store);

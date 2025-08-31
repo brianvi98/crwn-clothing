@@ -68,6 +68,19 @@ export const signOutUser = async () => {
 export const onAuthStateChangedListener = (callback) =>
   onAuthStateChanged(auth, callback);
 
+export const getCurrentUser = () => {
+  return new Promise((resolve, reject) => {
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (userAuth) => {
+        unsubscribe();
+        resolve(userAuth);
+      },
+      reject
+    );
+  });
+};
+
 // ~~~ FIRESTORE DB ~~~
 // initialize Firestore as db
 export const db = getFirestore();
@@ -104,7 +117,6 @@ export const createUserDocumentFromAuth = async (
   if (!userAuth) return;
 
   const userDocRef = doc(db, "users", userAuth.uid);
-  console.log(userDocRef);
 
   // find out if this user exists already. if so, do nothing
   const userSnapshot = await getDoc(userDocRef);
@@ -122,9 +134,9 @@ export const createUserDocumentFromAuth = async (
         ...additionalInformation,
       });
     } catch (error) {
-      console.log("error creating user", error);
+      console.log("error creating user", error.message);
     }
   }
 
-  return userDocRef;
+  return userSnapshot;
 };
